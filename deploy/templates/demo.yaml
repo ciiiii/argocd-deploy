@@ -58,7 +58,7 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Values.name }}
+            name: {{ .Values.config }}
 ---
 apiVersion: v1
 kind: Service
