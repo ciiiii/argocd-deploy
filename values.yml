@@ -1,3 +1,3 @@
 name: argocd-demo
 image_url: "docker.pkg.github.com/ciiiii/argocd-demo/echo-server:latest"
-config: "config1"
+config: "config2"
