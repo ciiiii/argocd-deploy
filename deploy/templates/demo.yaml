@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-registry-puller
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJkb2NrZXIucGtnLmdpdGh1Yi5jb20iOnsidXNlcm5hbWUiOiJjaWlpaWkiLCJwYXNzd29yZCI6IjU4ZDdhY2MxMDU3YWM1OTk2ZDczOGVmYzNkMDE4YzE3ODY5MWFmNDUiLCJhdXRoIjoiWTJscGFXbHBPalU0WkRkaFkyTXhNRFUzWVdNMU9UazJaRGN6T0dWbVl6TmtNREU0WXpFM09EWTVNV0ZtTkRVPSJ9fX0=
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    app: {{ .Values.name }}
+data:
+  CONFIG: {{ .Values.config }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      name: {{ .Values.name }}
+      labels:
+        app: {{ .Values.name }}
+    spec:
+      containers:
+        - name: {{ .Values.name }}
+          imagePullPolicy: Always
+          image: {{ .Values.image_url }}
+          resources:
+            requests:
+              cpu: 10m
+              memory: 500Mi
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: ENVS_BASE_PATH
+          value: /{{.Values.name}}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /{{.Values.name}}
+      imagePullSecrets:
+        - name: github-registry-puller
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ .Values.name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Values.name }}
