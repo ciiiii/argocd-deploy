@@ -47,18 +47,11 @@ spec:
             - name: http
               containerPort: 8000
               protocol: TCP
-          env:
-            - name: ENVS_BASE_PATH
-              value: /{{.Values.name}}
-          volumeMounts:
-            - name: config-volume
-              mountPath: /{{.Values.name}}
+          envFrom:
+          - configMapRef:
+              name: {{ .Values.name }}
       imagePullSecrets:
         - name: github-registry-puller
-      volumes:
-        - name: config-volume
-          configMap:
-            name: {{ .Values.name }}
 ---
 apiVersion: v1
 kind: Service
